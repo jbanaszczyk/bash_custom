@@ -1,0 +1,108 @@
+# --- Hostname Alias Configuration ---
+# Hybrid alias system: dictionary + /etc/hosts fallback
+
+HOSTNAME_ALIASES=(
+    "wawsrvdev175:dev"
+    # "other-host:alias"
+    # add more hosts here
+)
+
+get_hostname_alias() {
+    local hostname=$(hostname)
+    local short_hostname=${hostname%%.*}
+    local alias
+
+    # Check dictionary - only short hostname
+    for mapping in "${HOSTNAME_ALIASES[@]}"; do
+        if [[ $mapping == $short_hostname:* ]]; then
+            alias=${mapping#*:}
+            echo "$alias"
+            return
+        fi
+    done
+
+    # Fallback to /etc/hosts
+    if [[ -r /etc/hosts ]]; then
+        alias=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*\b${hostname}\b" /etc/hosts 2>/dev/null | \
+            awk -v host="$hostname" -v short_host="$short_hostname" '{
+                for(i=2; i<=NF; i++) {
+                    if($i != host && $i != short_host) {
+                        print $i
+                        exit
+                    }
+                }
+            }')
+        if [[ -n "$alias" && "$alias" != "$hostname" && "$alias" != "$short_hostname" ]]; then
+            echo "$alias"
+            return
+        fi
+    fi
+
+    # Default to short hostname
+    echo "$short_hostname"
+}
+
+# --- Colors ---
+RESET='\[\e[0m\]'
+BOLD='\[\e[1m\]'
+DIM='\[\e[2m\]'
+CYAN='\[\e[36m\]'
+GREEN='\[\e[32m\]'
+YELLOW='\[\e[33m\]'
+RED='\[\e[31m\]'
+MAGENTA='\[\e[35m\]'
+
+# --- Git segment ---
+_git_segment() {
+    GIT_OPTIONAL_LOCKS=0 git rev-parse --is-inside-work-tree &>/dev/null || return
+
+    # Branch / ref
+    local ref
+    ref=$(git symbolic-ref --short -q HEAD 2>/dev/null \
+        || git describe --tags --exact-match 2>/dev/null \
+        || git rev-parse --short HEAD 2>/dev/null)
+    [ -z "$ref" ] && return
+
+    # Porcelain status (fast to parse)
+    local s
+    s=$(git status --porcelain 2>/dev/null)
+
+    # Counters
+    local staged unstaged untracked conflicts stashed
+    staged=$(printf "%s\n" "$s" | grep -E '^[A-Z?][^ ]' -c || true)   # first column != space and != ?
+    unstaged=$(printf "%s\n" "$s" | grep -E '^.[MD]' -c || true)      # second column indicates worktree changes
+    untracked=$(printf "%s\n" "$s" | grep -E '^\?\?' -c || true)
+    conflicts=$(printf "%s\n" "$s" | grep -E '^(AA|DD|UU|AU|UA|DU|UD)' -c || true)
+    if git rev-parse --verify -q refs/stash >/dev/null; then stashed=1; else stashed=0; fi
+
+    # Build status tokens
+    local tokens=""
+    if [ "$staged" -gt 0 ]; then tokens+=" ${GREEN}+${staged}${RESET}"; fi
+    if [ "$unstaged" -gt 0 ]; then tokens+=" ${YELLOW}~${unstaged}${RESET}"; fi
+    if [ "$untracked" -gt 0 ]; then tokens+=" ${MAGENTA}?${untracked}${RESET}"; fi
+    if [ "$conflicts" -gt 0 ]; then tokens+=" ${RED}!${conflicts}${RESET}"; fi
+    if [ "$stashed" -gt 0 ]; then tokens+=" ${DIM}≡${RESET}"; fi
+
+    # Clean mark if no changes
+    if [ "$staged" -eq 0 ] && [ "$unstaged" -eq 0 ] && [ "$untracked" -eq 0 ] && [ "$conflicts" -eq 0 ]; then
+        tokens+="${GREEN}✔${RESET}"
+    fi
+
+    printf " (%s%s)" "${CYAN}" "$ref" "${RESET}${tokens}"
+}
+
+# --- Prompt builder ---
+_build_ps1() {
+    local git="$(_git_segment)"
+    local hostname_alias
+
+    if [[ $PWD == "$HOME" ]]; then
+        hostname_alias=$(get_hostname_alias)
+        PS1="${GREEN}\u${RESET}@${MAGENTA}${hostname_alias}${RESET}\n${CYAN}~${RESET}${git} \$ "
+    else
+        PS1="${CYAN}\w${RESET}${git} \n\$ "
+    fi
+}
+
+# Set prompt command
+PROMPT_COMMAND=_build_ps1
