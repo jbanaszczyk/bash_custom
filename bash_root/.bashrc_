@@ -1,0 +1,16 @@
+# ==[ Customization begin ]============
+
+HISTCONTROL=ignorespace:erasedups
+export LESS="-NRiFX"
+
+if [ -f ~/.bash_prompt ]; then
+    . ~/.bash_prompt
+fi
+
+if [ -f ~/.bash_functions ]; then
+    . ~/.bash_functions
+fi
+
+bind -x '"\e[6~": __hist_widget'
+
+# ==[ Customization end ]============

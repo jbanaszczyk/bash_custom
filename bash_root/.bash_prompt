@@ -1,0 +1,71 @@
+# --- Hostname Alias Configuration ---
+HOSTNAME_ALIASES=(
+    "wawsrvdev175:dev"
+    "wawsrvdev174:DM_stg"
+    "wawsrvdev124:DM_dev"
+    "wawsrvdev125:DM_dev2"
+    "wawsrvdev126:DM_ldap"
+    "wawsrvdev127:DM_dev3"
+    "wawsrvdev128:DM_dev4"
+    "wawsrvbuild100:DM_dev5"
+    "wawsrvbuild102:DM_dev6"
+    "wawsrvbuild103:DM_dev7"
+)
+
+get_hostname_alias() {
+    local hostname=$(hostname)
+    local short_hostname=${hostname%%.*}
+    local host_alias
+
+    # Check dictionary - only short hostname
+    for mapping in "${HOSTNAME_ALIASES[@]}"; do
+        if [[ $mapping == $short_hostname:* ]]; then
+            host_alias=${mapping#*:}
+            echo "$host_alias"
+            return
+        fi
+    done
+
+    # Fallback to /etc/hosts
+    if [[ -r /etc/hosts ]]; then
+        host_alias=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*\b${hostname}\b" /etc/hosts 2>/dev/null | \
+            awk -v host="$hostname" -v short_host="$short_hostname" '{
+                for(i=2; i<=NF; i++) {
+                    if($i != host && $i != short_host) {
+                        print $i
+                        exit
+                    }
+                }
+            }')
+        if [[ -n "$host_alias" && "$host_alias" != "$hostname" && "$host_alias" != "$short_hostname" ]]; then
+            echo "$host_alias"
+            return
+        fi
+    fi
+
+    # Default to short hostname
+    echo "$short_hostname"
+}
+
+# --- Colors ---
+RESET='\[\e[0m\]'
+CYAN='\[\e[36m\]'
+GREEN='\[\e[32m\]'
+MAGENTA='\[\e[35m\]'
+
+# --- Prompt builder ---
+_HOSTNAME_ALIAS=""
+
+_build_ps1() {
+    [[ -z "$_HOSTNAME_ALIAS" ]] && _HOSTNAME_ALIAS=$(get_hostname_alias)
+
+    printf '\033]0;%s@%s\007' "$USER" "$_HOSTNAME_ALIAS"
+
+    if [[ $PWD == "$HOME" ]]; then
+        PS1="${GREEN}\u${RESET}@${MAGENTA}${_HOSTNAME_ALIAS}${RESET}\n${CYAN}~${RESET}"' \$ '
+    else
+        PS1="${CYAN}\w${RESET}"' \$ '
+    fi
+}
+
+PROMPT_COMMAND=_build_ps1

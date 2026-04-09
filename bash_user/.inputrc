@@ -1,0 +1,28 @@
+# ==[ Customization begin ]============
+# Filename completion
+"\t": menu-complete
+"\e[Z": menu-complete-backward
+
+# Escape clears the line
+"\e": kill-whole-line
+
+# History search by prefix
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Navigation
+"\e[1~": beginning-of-line
+"\e[4~": end-of-line
+"\e[2~": overwrite-mode
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word
+
+# Ctrl+Page Up - change to parent directory
+"\e[5;5~": " cd ..\n"
+# Ctrl+Page Down - interactive directory navigation with fzf
+"\e[6;5~": " cd\n"
+
+# Page Up - directory history
+"\e[5~": " dh\n"
+# Page Down - command history (handled by bind -x in .bash_functions)
+# ==[ Customization end ]============

@@ -3,27 +3,34 @@
 
 HOSTNAME_ALIASES=(
     "wawsrvdev175:dev"
-    # "other-host:alias"
-    # add more hosts here
+    "wawsrvdev174:DM_stg"
+    "wawsrvdev124:DM_dev"
+    "wawsrvdev125:DM_dev2"
+    "wawsrvdev126:DM_ldap"
+    "wawsrvdev127:DM_dev3"
+    "wawsrvdev128:DM_dev4"
+    "wawsrvbuild100:DM_dev5"
+    "wawsrvbuild102:DM_dev6"
+    "wawsrvbuild103:DM_dev7"
 )
 
 get_hostname_alias() {
     local hostname=$(hostname)
     local short_hostname=${hostname%%.*}
-    local alias
+    local host_alias
 
     # Check dictionary - only short hostname
     for mapping in "${HOSTNAME_ALIASES[@]}"; do
         if [[ $mapping == $short_hostname:* ]]; then
-            alias=${mapping#*:}
-            echo "$alias"
+            host_alias=${mapping#*:}
+            echo "$host_alias"
             return
         fi
     done
 
     # Fallback to /etc/hosts
     if [[ -r /etc/hosts ]]; then
-        alias=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*\b${hostname}\b" /etc/hosts 2>/dev/null | \
+        host_alias=$(grep -E "^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*\b${hostname}\b" /etc/hosts 2>/dev/null | \
             awk -v host="$hostname" -v short_host="$short_hostname" '{
                 for(i=2; i<=NF; i++) {
                     if($i != host && $i != short_host) {
@@ -32,8 +39,8 @@ get_hostname_alias() {
                     }
                 }
             }')
-        if [[ -n "$alias" && "$alias" != "$hostname" && "$alias" != "$short_hostname" ]]; then
-            echo "$alias"
+        if [[ -n "$host_alias" && "$host_alias" != "$hostname" && "$host_alias" != "$short_hostname" ]]; then
+            echo "$host_alias"
             return
         fi
     fi
@@ -69,10 +76,10 @@ _git_segment() {
 
     # Counters
     local staged unstaged untracked conflicts stashed
-    staged=$(printf "%s\n" "$s" | grep -E '^[A-Z?][^ ]' -c || true)   # first column != space and != ?
-    unstaged=$(printf "%s\n" "$s" | grep -E '^.[MD]' -c || true)      # second column indicates worktree changes
-    untracked=$(printf "%s\n" "$s" | grep -E '^\?\?' -c || true)
-    conflicts=$(printf "%s\n" "$s" | grep -E '^(AA|DD|UU|AU|UA|DU|UD)' -c || true)
+    staged=$(printf '%s\n' "$s" | grep -cE '^[MADRC]' || true)   # X = M/A/D/R/C → staged
+    unstaged=$(printf '%s\n' "$s" | grep -cE '^.[MD]' || true)   # Y = M/D → worktree changes
+    untracked=$(printf '%s\n' "$s" | grep -cE '^\?\?' || true)
+    conflicts=$(printf '%s\n' "$s" | grep -cE '^(DD|AU|UD|UA|DU|AA|UU)' || true) # all 7 unmerged states
     if git rev-parse --verify -q refs/stash >/dev/null; then stashed=1; else stashed=0; fi
 
     # Build status tokens
@@ -85,22 +92,25 @@ _git_segment() {
 
     # Clean mark if no changes
     if [ "$staged" -eq 0 ] && [ "$unstaged" -eq 0 ] && [ "$untracked" -eq 0 ] && [ "$conflicts" -eq 0 ]; then
-        tokens+="${GREEN}✔${RESET}"
+        tokens+=" ${GREEN}✔${RESET}"
     fi
 
-    printf " (%s%s)" "${CYAN}" "$ref" "${RESET}${tokens}"
+    printf " (%s%s%s)" "${CYAN}" "$ref" "${RESET}${tokens}"
 }
 
 # --- Prompt builder ---
+_HOSTNAME_ALIAS=""
+
 _build_ps1() {
     local git="$(_git_segment)"
-    local hostname_alias
+    [[ -z "$_HOSTNAME_ALIAS" ]] && _HOSTNAME_ALIAS=$(get_hostname_alias)
+
+    printf '\033]0;%s@%s\007' "$USER" "$_HOSTNAME_ALIAS"
 
     if [[ $PWD == "$HOME" ]]; then
-        hostname_alias=$(get_hostname_alias)
-        PS1="${GREEN}\u${RESET}@${MAGENTA}${hostname_alias}${RESET}\n${CYAN}~${RESET}${git} \$ "
+        PS1="${GREEN}\u${RESET}@${MAGENTA}${_HOSTNAME_ALIAS}${RESET}\n${CYAN}~${RESET}${git}"' \$ '
     else
-        PS1="${CYAN}\w${RESET}${git} \n\$ "
+        PS1="${CYAN}\w${RESET}${git}"' \$ '
     fi
 }
 
