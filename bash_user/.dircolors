@@ -74,7 +74,7 @@ TERM msys
 # blue=33  green=64  cyan=37  violet=61  yellow=136  orange=166
 # base0=244(normal)  base1=245(dim)  base01=240(dimmer)
 ## Note: designed for Solarized Light background
-## logs/backups use 240 (#585858) — darker than normal on light bg (known issue)
+## logs/backups use 240 (#585858) - darker than normal on light bg (known issue)
 
 NORMAL 00;38;5;244 # no color code at all
 #FILE 00 # regular file: use no color at all
@@ -152,7 +152,7 @@ EXEC 01;38;5;64
 .pcx    00;38;5;136
 .ico    00;38;5;136
 
-# "unimportant" files: logs and backups (base01 240 — dim)
+# "unimportant" files: logs and backups (base01 240 - dim)
 .log    00;38;5;240
 .bak    00;38;5;240
 .aux    00;38;5;240
@@ -213,7 +213,7 @@ EXEC 01;38;5;64
 .sql    00;38;5;37
 .lua    00;38;5;37
 
-# config / data files (base1 245 — slightly dim)
+# config / data files (base1 245 - slightly dim)
 .xml    00;38;5;245
 .html   00;38;5;245
 .htm    00;38;5;245
@@ -233,7 +233,7 @@ EXEC 01;38;5;64
 .md     00;38;5;245
 .txt    00;38;5;245
 
-# compiled / build artifacts (base01 240 — darkest dim)
+# compiled / build artifacts (base01 240 - darkest dim)
 .class  00;38;5;240
 .o      00;38;5;240
 .a      00;38;5;240

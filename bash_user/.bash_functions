@@ -151,6 +151,23 @@ list() {
     fi
 }
 
+__cd_root() {
+    local git_root home="$HOME"
+
+    git_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [[ -n "$git_root" ]]; then
+        cd -- "$git_root"
+    elif [[ "$PWD" == "$home" || "$PWD" == "$home/"* ]]; then
+        cd -- "$home"
+    else
+        cd /
+    fi
+}
+
+/() {
+    __cd_root
+}
+
 mcd() {
     mkdir -p -- "$1" && cd -- "$1"
 }

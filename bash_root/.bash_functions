@@ -1,3 +1,19 @@
+__cd_root() {
+    cd /
+}
+
+/() {
+    __cd_root
+}
+
+list() {
+    if command -v batcat >/dev/null 2>&1; then
+        batcat "$@"
+    else
+        less "$@"
+    fi
+}
+
 mcd() {
     mkdir -p -- "$1" && cd -- "$1"
 }

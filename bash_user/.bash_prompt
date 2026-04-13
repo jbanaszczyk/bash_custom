@@ -19,11 +19,16 @@ get_hostname_alias() {
     local short_hostname=${hostname%%.*}
     local host_alias
 
-    # Check dictionary - only short hostname
+    # ~/.hostname.alias takes priority - single line, just the alias value
+    if [[ -r ~/.hostname.alias ]]; then
+        host_alias=$(grep -m1 '[^[:space:]]' ~/.hostname.alias 2>/dev/null)
+        [[ -n "$host_alias" ]] && { echo "$host_alias"; return; }
+    fi
+
+    # Fallback to built-in array
     for mapping in "${HOSTNAME_ALIASES[@]}"; do
         if [[ $mapping == $short_hostname:* ]]; then
-            host_alias=${mapping#*:}
-            echo "$host_alias"
+            echo "${mapping#*:}"
             return
         fi
     done

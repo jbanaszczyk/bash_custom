@@ -4,7 +4,9 @@ alias ...='cd ../..'
 alias ~='cd $HOME'
 alias full='realpath'
 pshow() { echo "$PATH" | tr ':' '\n'; }
-calc() { echo "$*" | bc -l; }
-alias dir='ls -la --color=auto'
+calc() { if [[ $# -eq 0 ]]; then bc -l; else printf '%s\n' "$*" | bc -l; fi; }
+alias dir='ls -lah --color=auto'
 alias cls='clear'
-alias md='mkdir'
+alias md='mkdir -p'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'

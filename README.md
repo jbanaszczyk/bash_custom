@@ -2,9 +2,10 @@
 
 Portable bash customization for developer workstations and servers.
 
+- Powerful file finder (`ffind`) - recursive search with content grep, case options, hidden file support
+- Keyboard-driven navigation using [fzf](https://github.com/juniper/fzf) - fuzzy finder for interactive directory/file/history picking
+- Syntax-highlighted file viewer (`list`) via [batcat](https://github.com/sharkdp/bat) (optional)
 - Solarized Light theme
-- TCC-inspired utilities
-- fzf-powered navigation
 
 ## Repository structure
 
@@ -17,12 +18,13 @@ Each directory is self-contained and ships with its own `README.md` and `deploy*
 
 ## Requirements
 
-- `bash_user`: `fzf` (`sudo apt install fzf`)
+- `bash_user`: `fzf` - fuzzy finder for interactive navigation (`sudo apt install fzf`)
+- `bash_user`: `batcat` - syntax-highlighted file viewer, optional (`sudo apt install bat`)
 - `bash_root`: no extra dependencies
 
 ## Quick start
 
-Deploy to multiple hosts in one command — `.` means local, the rest are SSH hosts:
+Deploy to multiple hosts in one command - `.` means local, the rest are SSH hosts:
 
 ```bash
 # Deploy user config: local + two remote hosts at once
@@ -37,7 +39,7 @@ cd bash_user && ./deploy.sh -u jenkins . host1
 
 ## History deduplication
 
-`HISTCONTROL=erasedups` is set in `.bashrc_` — new commands deduplicate against history on entry.
+`HISTCONTROL=erasedups` is set in `.bashrc_` - new commands deduplicate against history on entry.
 
 For existing history accumulated before this setting, run `dedup_history.sh` once after the first deploy.
 
@@ -49,19 +51,31 @@ For existing history accumulated before this setting, run `dedup_history.sh` onc
 - Git status segment: branch, staged/unstaged/untracked/conflict counts, stash indicator (`bash_user` only)
 - Single-line prompt when not at `$HOME`, two-line when at `$HOME`
 - Window (ssh session) title: `user@host_alias`
-- Colors via ANSI 16 — Solarized values come from the terminal color scheme
+- Colors via ANSI 16 - Solarized values come from the terminal color scheme
 
-### fzf navigation (`bash_user` only)
+### Navigation
 
-| Key            | Function | Description                                        |
-|----------------|----------|----------------------------------------------------|
-| Ctrl+Page Up   | `cd ..`  | just `cd ..`                                       |
-| Ctrl+Page Down | `cd`     | interactively select and `cd` into a subdirectory  |
-| Page Up        | `dh`     | pick from directory history and `cd` there         |
-| —              | `list`   | interactively select a file to view in `less`      |
-| —              | `rm`     | interactive, safe file remove                      |
-| —              | `del`    | interactive, forced file remove (`rm -rf`)         |
-| Page Down      | —        | command history picker (inserts into command line) |
+Cohesive set of commands and keys for moving around the filesystem:
+
+| Where to go              | bash_user            | bash_root            |
+|--------------------------|----------------------|----------------------|
+| up 1 level               | `..` or Ctrl+Page Up | `..` or Ctrl+Page Up |
+| up 2 levels              | `...`                | `...`                |
+| `$HOME`                  | `~`                  | `~`                  |
+| git root / `$HOME` / `/` | `/`                  | `/` (always `/`)     |
+| into a subdir            | Ctrl+Page Down (fzf) | -                    |
+| previously visited dir   | Page Up (fzf `dh`)   | -                    |
+
+### fzf utilities (`bash_user` only)
+
+| Key / Command  | Description                                        |
+|----------------|----------------------------------------------------|
+| Ctrl+Page Down | interactively select and `cd` into a subdirectory  |
+| Page Up        | pick from directory history (`dh`) and `cd` there  |
+| Page Down      | command history picker (inserts into command line) |
+| `list`         | interactively select a file to view                |
+| `rm`           | interactive, safe file remove                      |
+| `del`          | interactive, forced file remove (`rm -rf`)         |
 
 ### `ffind`
 
@@ -80,12 +94,12 @@ ffind [-sIibH] [-t "pattern"] [dir] "filename_pattern"
 | `-H`           | include hidden files/dirs                 |
 | `-I`           | case-insensitive filename match           |
 
-Note: always quote glob patterns — `ffind "*.java"` not `ffind *.java`.
+Note: always quote glob patterns - `ffind "*.java"` not `ffind *.java`.
 
 ### `ls` colors
 
 Solarized Light 256-color scheme via `~/.dircolors`.
-256-color values are hardcoded — independent of the terminal palette.
+256-color values are hardcoded - independent of the terminal palette.
 
 | Color             | Files                                                           |
 |-------------------|-----------------------------------------------------------------|
@@ -140,4 +154,4 @@ Color scheme:
 ```
 
 > ANSI palette affects prompt colors.
-> `.dircolors` uses 256-color — unaffected by palette.
+> `.dircolors` uses 256-color - unaffected by palette.
