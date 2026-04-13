@@ -64,7 +64,7 @@ Cohesive set of commands and keys for moving around the filesystem:
 | `$HOME`                  | `~`                  | `~`                  |
 | git root / `$HOME` / `/` | `/`                  | `/` (always `/`)     |
 | into a subdir            | Ctrl+Page Down (fzf) | -                    |
-| previously visited dir   | Page Up (fzf `dh`)   | -                    |
+| dir from .dir_history    | Page Up (fzf `dh`)   | -                    |
 
 ### fzf utilities (`bash_user` only)
 
