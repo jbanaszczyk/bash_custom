@@ -124,20 +124,35 @@ del() {
             command rm -rf -- "$item_name"
         fi
     else
-        command rm -rf -- "$@"
+        command rm -rf "$@"
     fi
 }
 
 list() {
+    local viewer
+    if command -v batcat >/dev/null 2>&1; then
+        viewer=(batcat --pager 'less -n')
+    else
+        viewer=(less)
+    fi
+
     if [[ $# -eq 0 ]]; then
         local selected_file
-        selected_file=$(ls -1p -a --color=always 2>/dev/null | grep -v '/$' | fzf --ansi --height=40% --reverse --prompt="Select file to view: ")
+        selected_file=$(
+            ls -1p -a --color=always 2>/dev/null |
+            grep -v '/$' |
+            fzf --ansi --height=40% --reverse --prompt="Select file to view: "
+        )
         if [[ -n "$selected_file" ]]; then
-            less -- "$(printf '%s' "$selected_file" | sed 's/\x1b\[[0-9;]*m//g')"
+            "${viewer[@]}" -- "$(printf '%s' "$selected_file" | sed 's/\x1b\[[0-9;]*m//g')"
         fi
     else
-        less -- "$@"
+        "${viewer[@]}" "$@"
     fi
+}
+
+mcd() {
+    mkdir -p -- "$1" && cd -- "$1"
 }
 
 ffind() {

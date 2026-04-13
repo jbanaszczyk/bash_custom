@@ -1,3 +1,7 @@
+mcd() {
+    mkdir -p -- "$1" && cd -- "$1"
+}
+
 ffind() {
     local OPTIND opt
     local opt_subdirs=0 opt_case_file=0 opt_case_text=0 opt_bare=0 opt_hidden=0
