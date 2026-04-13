@@ -115,12 +115,25 @@ Solarized Light 256-color scheme via `~/.dircolors`.
 
 Settings: `Ctrl+,` → **Color schemes** → Add, or edit `settings.json`.
 
-Profile:
+Profile — basic:
 
 ```json
 "font": {
-"face": "JetBrains Mono",
-"size": 12
+    "face": "JetBrains Mono",
+    "size": 12
+},
+"colorScheme": "Solarized Light (fixed)"
+```
+
+Profile - with ligatures (Fira Code, JetBrains Mono, Cascadia Code, Hasklig):
+
+```json
+"font": {
+    "face": "Fira Code",
+    "size": 12,
+    "features": {
+        "calt": 1
+    }
 },
 "colorScheme": "Solarized Light (fixed)"
 ```
