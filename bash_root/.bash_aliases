@@ -1,4 +1,3 @@
-alias getip='hostname -I | awk "{print \$1}"'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ~='cd $HOME'

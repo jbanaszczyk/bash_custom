@@ -2,6 +2,7 @@
 
 HISTCONTROL=ignorespace:erasedups
 export LESS="-NRiFX"
+shopt -s autocd
 
 if [ -f ~/.bash_prompt ]; then
     . ~/.bash_prompt

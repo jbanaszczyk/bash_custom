@@ -103,3 +103,19 @@ ffind() {
         fi
     done < <(find "${find_args[@]}" 2>/dev/null)
 }
+
+############
+
+netstat() {
+    if [[ $# -eq 0 ]]; then
+        command netstat -ltnp
+    else
+        command netstat "$@"
+    fi
+}
+
+############
+
+load_completion() {
+    [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+}

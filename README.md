@@ -65,6 +65,7 @@ Cohesive set of commands and keys for moving around the filesystem:
 | git root / `$HOME` / `/` | `/`                  | `/` (always `/`)     |
 | into a subdir            | Ctrl+Page Down (fzf) | -                    |
 | dir from .dir_history    | Page Up (fzf `dh`)   | -                    |
+| type a path directly     | `autocd` (no `cd` needed) | -               |
 
 ### fzf utilities (`bash_user` only)
 
@@ -76,6 +77,20 @@ Cohesive set of commands and keys for moving around the filesystem:
 | `list`         | interactively select a file to view                |
 | `rm`           | interactive, safe file remove                      |
 | `del`          | interactive, forced file remove (`rm -rf`)         |
+
+### `netstat`
+
+Wrapper with a sensible default: `netstat` with no arguments runs `netstat -ltnp` (listening TCP sockets with PIDs). Passes arguments through unchanged when provided.
+
+Available in both `bash_user` and `bash_root`.
+
+### `load_completion`
+
+Loads `/usr/share/bash-completion/bash_completion` if present. Called automatically in `bash_user/.bashrc_`. On systems where bash-completion is not sourced by default, run `load_completion` manually to enable tab-completion for commands.
+
+```bash
+sudo apt install bash-completion
+```
 
 ### `ffind`
 

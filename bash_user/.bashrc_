@@ -2,6 +2,7 @@
 
 HISTCONTROL=ignorespace:erasedups
 export LESS="-NRiFX"
+shopt -s autocd
 
 if [ -f ~/.bash_prompt ]; then
     . ~/.bash_prompt
@@ -12,5 +13,7 @@ if [ -f ~/.bash_functions ]; then
 fi
 
 bind -x '"\e[6~": __hist_widget'
+
+load_completion
 
 # ==[ Customization end ]============
