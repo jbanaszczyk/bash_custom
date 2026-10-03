@@ -2,6 +2,7 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ~='cd $HOME'
 alias full='realpath'
+truename() { realpath -ms -- "${@:-.}"; }
 pshow() { echo "$PATH" | tr ':' '\n'; }
 calc() { if [[ $# -eq 0 ]]; then bc -l; else printf '%s\n' "$*" | bc -l; fi; }
 alias dir='ls -lah --color=auto'

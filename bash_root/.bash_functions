@@ -8,7 +8,7 @@ __cd_root() {
 
 list() {
     if command -v batcat >/dev/null 2>&1; then
-        batcat "$@"
+        batcat --theme=ansi "$@"
     else
         less "$@"
     fi
@@ -117,5 +117,6 @@ netstat() {
 ############
 
 load_completion() {
+    [[ -n ${BASH_COMPLETION_VERSINFO-} ]] && return 0
     [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
 }

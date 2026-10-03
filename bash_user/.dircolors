@@ -53,6 +53,7 @@ TERM xterm-256color
 TERM xterm-88color
 TERM xterm-color
 TERM xterm-debian
+TERM xterm-kitty
 TERM msys
 
 # Below are the color init strings for the basic file types. A color init
@@ -64,179 +65,184 @@ TERM msys
 # Background color codes:
 # 40=black 41=red 42=green 43=yellow 44=blue 45=magenta 46=cyan 47=white
 
-## dircolors 256 COLOR SUPPORT
-# Text 256 color coding:
-# 38;5;COLOR_NUMBER
-# Background 256 color coding:
-# 48;5;COLOR_NUMBER
+## ANSI 16 -> Selenized Light (colors come from the terminal palette)
+## Colors are for grouping only: one hue per group, no bold-only differences.
+## Hues follow the IntelliJ Selenized Light theme where there is an analogy.
+#
+# group               ANSI     Selenized   IntelliJ analogy
+# directories         34       #0072D4     keywords, XML tags, folder icons
+# executables         32       #489100     Run action (green)
+# symlinks            36       #009C8F     strings / renamed files
+# source code (magenta)
+# config/data/docs    33       #AD8900     metadata, annotations
+# archives, media     31       #D2212D     -
+# compiled/logs/tmp   37       #909995     comments, ignored, disabled
+# broken symlink      41;30    red bar
+# setuid/setgid/cap   43;30    yellow bar
+# pipes/sockets/devs  40;33    yellow on bg_1 (#E9E4D0)
+# everything else     00       foreground #53676D
 
-## Solarized palette reference (256-color):
-# blue=33  green=64  cyan=37  violet=61  yellow=136  orange=166
-# base0=244(normal)  base1=245(dim)  base01=240(dimmer)
-## Note: designed for Solarized Light background
-## logs/backups use 240 (#585858) - darker than normal on light bg (known issue)
-
-NORMAL 00;38;5;244 # no color code at all
+NORMAL 00 # no color code at all
 #FILE 00 # regular file: use no color at all
 RESET 0 # reset to "normal" color
-DIR 00;38;5;33 # directory
-LINK 01;38;5;166 # symbolic link (bold orange)
+DIR 34 # directory
+LINK 36 # symbolic link
 MULTIHARDLINK 00 # regular file with more than one link
-FIFO 48;5;230;38;5;136;01 # pipe
-SOCK 48;5;230;38;5;136;01 # socket
-DOOR 48;5;230;38;5;136;01 # door
-BLK 48;5;230;38;5;244;01 # block device driver
-CHR 48;5;230;38;5;244;01 # character device driver
-ORPHAN 48;5;235;38;5;160 # symlink to nonexistent file, or non-stat'able file
-SETUID 48;5;160;38;5;230 # file that is setuid (u+s)
-SETGID 48;5;136;38;5;230 # file that is setgid (g+s)
-CAPABILITY 30;41 # file with capability
-STICKY_OTHER_WRITABLE 01;38;5;64 # dir that is sticky and other-writable (+t,o+w)
-OTHER_WRITABLE 00;38;5;33 # dir that is other-writable (o+w) and not sticky
-STICKY 01;38;5;33 # dir with the sticky bit set (+t) and not other-writable
+FIFO 40;33 # pipe
+SOCK 40;33 # socket
+DOOR 40;33 # door
+BLK 40;33 # block device driver
+CHR 40;33 # character device driver
+ORPHAN 41;30 # symlink to nonexistent file, or non-stat'able file
+SETUID 43;30 # file that is setuid (u+s)
+SETGID 43;30 # file that is setgid (g+s)
+CAPABILITY 43;30 # file with capability
+STICKY_OTHER_WRITABLE 34 # dir that is sticky and other-writable (+t,o+w)
+OTHER_WRITABLE 34 # dir that is other-writable (o+w) and not sticky
+STICKY 34 # dir with the sticky bit set (+t) and not other-writable
 # This is for files with execute permission:
-EXEC 01;38;5;64
+EXEC 32
 
- # archives or compressed (violet + bold for compression)
-.tar    00;38;5;61
-.tgz    01;38;5;61
-.arj    01;38;5;61
-.taz    01;38;5;61
-.lzh    01;38;5;61
-.lzma   01;38;5;61
-.tlz    01;38;5;61
-.txz    01;38;5;61
-.zip    01;38;5;61
-.z      01;38;5;61
-.Z      01;38;5;61
-.dz     01;38;5;61
-.gz     01;38;5;61
-.lz     01;38;5;61
-.xz     01;38;5;61
-.bz2    01;38;5;61
-.bz     01;38;5;61
-.tbz    01;38;5;61
-.tbz2   01;38;5;61
-.tz     01;38;5;61
-.deb    01;38;5;61
-.rpm    01;38;5;61
-.jar    01;38;5;61
-.rar    01;38;5;61
-.ace    01;38;5;61
-.zoo    01;38;5;61
-.cpio   01;38;5;61
-.7z     01;38;5;61
-.rz     01;38;5;61
-.apk    01;38;5;61
-.war    01;38;5;61
-.ear    01;38;5;61
+# archives or compressed (red, same group as media)
+.tar    31
+.tgz    31
+.arj    31
+.taz    31
+.lzh    31
+.lzma   31
+.tlz    31
+.txz    31
+.zip    31
+.z      31
+.Z      31
+.dz     31
+.gz     31
+.lz     31
+.xz     31
+.bz2    31
+.bz     31
+.tbz    31
+.tbz2   31
+.tz     31
+.deb    31
+.rpm    31
+.jar    31
+.rar    31
+.ace    31
+.zoo    31
+.cpio   31
+.7z     31
+.rz     31
+.apk    31
+.war    31
+.ear    31
 
-# image formats (yellow)
-.jpg    00;38;5;136
-.JPG    00;38;5;136
-.jpeg   00;38;5;136
-.gif    00;38;5;136
-.bmp    00;38;5;136
-.pbm    00;38;5;136
-.pgm    00;38;5;136
-.ppm    00;38;5;136
-.tga    00;38;5;136
-.xbm    00;38;5;136
-.xpm    00;38;5;136
-.tif    00;38;5;136
-.tiff   00;38;5;136
-.png    00;38;5;136
-.svg    00;38;5;136
-.svgz   00;38;5;136
-.mng    00;38;5;136
-.pcx    00;38;5;136
-.ico    00;38;5;136
+# image formats (red: archives & media)
+.jpg    31
+.JPG    31
+.jpeg   31
+.gif    31
+.bmp    31
+.pbm    31
+.pgm    31
+.ppm    31
+.tga    31
+.xbm    31
+.xpm    31
+.tif    31
+.tiff   31
+.png    31
+.svg    31
+.svgz   31
+.mng    31
+.pcx    31
+.ico    31
 
-# "unimportant" files: logs and backups (base01 240 - dim)
-.log    00;38;5;240
-.bak    00;38;5;240
-.aux    00;38;5;240
-.tmp    00;38;5;240
-.swp    00;38;5;240
+# "unimportant" files: logs, backups, temp (gray)
+.log    37
+.bak    37
+.aux    37
+.tmp    37
+.swp    37
 
-# audio formats (orange)
-.aac    00;38;5;166
-.au     00;38;5;166
-.flac   00;38;5;166
-.mid    00;38;5;166
-.midi   00;38;5;166
-.mp3    00;38;5;166
-.ogg    00;38;5;166
-.wav    00;38;5;166
+# audio formats (red: archives & media)
+.aac    31
+.au     31
+.flac   31
+.mid    31
+.midi   31
+.mp3    31
+.ogg    31
+.wav    31
 
-# video formats (orange + bold)
-.mov    01;38;5;166
-.mp4    01;38;5;166
-.mkv    01;38;5;166
-.avi    01;38;5;166
-.wmv    01;38;5;166
-.flv    01;38;5;166
+# video formats (red: archives & media)
+.mov    31
+.mp4    31
+.mkv    31
+.avi    31
+.wmv    31
+.flv    31
 
 # --- Developer extensions ---
 
-# source code (cyan 37)
-.java   00;38;5;37
-.kt     00;38;5;37
-.kts    00;38;5;37
-.groovy 00;38;5;37
-.scala  00;38;5;37
-.js     00;38;5;37
-.ts     00;38;5;37
-.jsx    00;38;5;37
-.tsx    00;38;5;37
-.mjs    00;38;5;37
-.cjs    00;38;5;37
-.py     00;38;5;37
-.rb     00;38;5;37
-.php    00;38;5;37
-.c      00;38;5;37
-.cpp    00;38;5;37
-.cc     00;38;5;37
-.cxx    00;38;5;37
-.h      00;38;5;37
-.hpp    00;38;5;37
-.hxx    00;38;5;37
-.rs     00;38;5;37
-.go     00;38;5;37
-.css    00;38;5;37
-.scss   00;38;5;37
-.sass   00;38;5;37
-.less   00;38;5;37
-.sh     00;38;5;37
-.bash   00;38;5;37
-.zsh    00;38;5;37
-.sql    00;38;5;37
-.lua    00;38;5;37
+# source code (magenta)
+.java   35
+.kt     35
+.kts    35
+.groovy 35
+.scala  35
+.js     35
+.ts     35
+.jsx    35
+.tsx    35
+.mjs    35
+.cjs    35
+.py     35
+.rb     35
+.php    35
+.c      35
+.cpp    35
+.cc     35
+.cxx    35
+.h      35
+.hpp    35
+.hxx    35
+.rs     35
+.go     35
+.css    35
+.scss   35
+.sass   35
+.less   35
+.sh     35
+.bash   35
+.zsh    35
+.sql    35
+.lua    35
 
-# config / data files (base1 245 - slightly dim)
-.xml    00;38;5;245
-.html   00;38;5;245
-.htm    00;38;5;245
-.xhtml  00;38;5;245
-.json   00;38;5;245
-.yaml   00;38;5;245
-.yml    00;38;5;245
-.toml   00;38;5;245
-.conf   00;38;5;245
-.cfg    00;38;5;245
-.ini    00;38;5;245
-.env    00;38;5;245
-.properties 00;38;5;245
-.gradle 00;38;5;245
-.pom    00;38;5;245
-.lock   00;38;5;245
-.md     00;38;5;245
-.txt    00;38;5;245
+# config / data / docs (yellow)
+.xml    33
+.html   33
+.htm    33
+.xhtml  33
+.json   33
+.yaml   33
+.yml    33
+.toml   33
+.conf   33
+.cfg    33
+.ini    33
+.env    33
+.properties 33
+.gradle 33
+.pom    33
+.lock   33
+.md     33
+.txt    33
 
-# compiled / build artifacts (base01 240 - darkest dim)
-.class  00;38;5;240
-.o      00;38;5;240
-.a      00;38;5;240
-.so     00;38;5;240
-.pyc    00;38;5;240
-.pyo    00;38;5;240
+# compiled / build artifacts (gray)
+.class  37
+.o      37
+.a      37
+.so     37
+.pyc    37
+.pyo    37

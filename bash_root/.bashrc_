@@ -1,6 +1,8 @@
 # ==[ Customization begin ]============
 
 HISTCONTROL=ignorespace:erasedups
+# On exit write the in-memory (deduplicated) history instead of appending to the file
+trap 'history -w; unset HISTFILE' EXIT
 export LESS="-NRiFX"
 shopt -s autocd
 
@@ -11,7 +13,5 @@ fi
 if [ -f ~/.bash_functions ]; then
     . ~/.bash_functions
 fi
-
-bind -x '"\e[6~": __hist_widget'
 
 # ==[ Customization end ]============

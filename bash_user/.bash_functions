@@ -6,6 +6,21 @@ __log_dir_history() {
     __interactive_shell && printf '%s\n' "$PWD" >> "$HOME/.dir_history"
 }
 
+# Source ./.direnv after entering a directory - only a regular file, owned by you, executable
+__source_direnv() {
+    if [[ -f .direnv && -O .direnv && -x .direnv ]]; then
+        . ./.direnv
+    fi
+}
+
+# builtin cd + log to ~/.dir_history + source ./.direnv
+__cd() {
+    builtin cd "$@" || return
+    __log_dir_history
+    __source_direnv
+    return 0
+}
+
 cd() {
     if [[ $# -eq 0 ]] && __interactive_shell; then
         local dirs=()
@@ -26,7 +41,7 @@ cd() {
         if [[ ${#all_names[@]} -eq 0 ]]; then
             builtin cd .
         elif [[ ${#all_names[@]} -eq 1 ]]; then
-            builtin cd "${all_names[0]}" && __log_dir_history
+            __cd "${all_names[0]}"
         else
             local dir_color link_color reset
             dir_color=$(printf '\033[%sm' "$(echo "$LS_COLORS" | tr ':' '\n' | grep '^di=' | cut -d= -f2)")
@@ -45,11 +60,11 @@ cd() {
             if [[ -n "$selected" ]]; then
                 local dir_name
                 dir_name=$(printf '%s' "$selected" | sed 's/\x1b\[[0-9;]*m//g' | cut -f1)
-                builtin cd "$dir_name" && __log_dir_history
+                __cd "$dir_name"
             fi
         fi
     else
-        builtin cd "$@" && __log_dir_history
+        __cd "$@"
     fi
 }
 
@@ -89,7 +104,7 @@ dh() {
     if [[ -n "$selected" ]]; then
         local dir_name
         dir_name=$(printf '%s' "$selected" | sed 's/\x1b\[[0-9;]*m//g')
-        builtin cd "$dir_name" && echo "$PWD" >> "$hist_file"
+        __cd "$dir_name"
     fi
 }
 
@@ -131,7 +146,7 @@ del() {
 list() {
     local viewer
     if command -v batcat >/dev/null 2>&1; then
-        viewer=(batcat --pager 'less -n')
+        viewer=(batcat --theme=ansi --pager 'less -n')
     else
         viewer=(less)
     fi
@@ -166,6 +181,13 @@ __cd_root() {
 
 /() {
     __cd_root
+}
+
+# Copy stdin (or arguments) to the local clipboard via OSC 52 - works locally and over ssh
+clip() {
+    local data
+    if [[ $# -gt 0 ]]; then data="$*"; else data=$(cat); fi
+    printf '\e]52;c;%s\a' "$(printf '%s' "$data" | base64 -w0)" > /dev/tty
 }
 
 mcd() {
@@ -271,5 +293,6 @@ netstat() {
 ############
 
 load_completion() {
+    [[ -n ${BASH_COMPLETION_VERSINFO-} ]] && return 0
     [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
 }

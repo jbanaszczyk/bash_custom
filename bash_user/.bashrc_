@@ -1,7 +1,11 @@
 # ==[ Customization begin ]============
 
 HISTCONTROL=ignorespace:erasedups
+# On exit write the in-memory (deduplicated) history instead of appending to the file
+trap 'history -w; unset HISTFILE' EXIT
 export LESS="-NRiFX"
+export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:---color=16 --bind=home:first,end:last}"
+PROJECT_DIR="$HOME"    # target of ~~ - set to the project you work on
 shopt -s autocd
 
 if [ -f ~/.bash_prompt ]; then
