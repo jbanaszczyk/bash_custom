@@ -66,7 +66,7 @@ from the in-memory history. By default bash only *appends* new commands to `~/.b
 so the file would keep the old copies. `.bashrc_` therefore sets an EXIT trap:
 
 ```bash
-trap 'history -w; unset HISTFILE' EXIT
+[[ -z $BASH_EXECUTION_STRING ]] && trap 'history -w; unset HISTFILE' EXIT
 ```
 
 On exit the file is rewritten from the in-memory history (already deduplicated); `unset HISTFILE`
@@ -75,6 +75,7 @@ stops bash from appending the session again afterwards. Consequences:
 - with several terminals open, the last one to exit wins - commands from the others can be lost
 - killed sessions (closed window with ssh, SIGKILL) save nothing
 - `exec bash` does not run the trap; it appends the session (a few duplicates, removed when the command is used again)
+- `bash -i -c ...` (IDEs and tools reading the shell environment) does not load history, so the trap is not set there - otherwise it would empty the file
 
 For history accumulated before this setting, run `dedup_history.sh` once during the initial deploy.
 

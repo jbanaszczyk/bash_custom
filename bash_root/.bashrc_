@@ -2,7 +2,8 @@
 
 HISTCONTROL=ignorespace:erasedups
 # On exit write the in-memory (deduplicated) history instead of appending to the file
-trap 'history -w; unset HISTFILE' EXIT
+# Skipped for `bash -i -c` (IDE / tool env probes): it does not load history, the trap would empty the file
+[[ -z $BASH_EXECUTION_STRING ]] && trap 'history -w; unset HISTFILE' EXIT
 export LESS="-NRiFX"
 shopt -s autocd
 

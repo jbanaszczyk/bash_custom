@@ -29,8 +29,9 @@ build_chmod_cmd() {
     done
 }
 
+# owner root:root - tar run as root restores the owner stored in the archive
 stream_archive() {
-    tar czf - -C "$script_dir" -- "${all_files[@]}"
+    tar czf - --owner=0 --group=0 --numeric-owner -C "$script_dir" -- "${all_files[@]}"
 }
 
 deploy_local() {
@@ -38,11 +39,13 @@ deploy_local() {
     if [[ -n "$chmod_cmd" ]]; then sudo bash -c "$chmod_cmd"; fi
 }
 
+# Two steps: upload to a temp file, then extract with ssh -t (sudo needs a terminal for the password)
 deploy_remote() {
-    local host="$1"
-    local remote_cmd="tar xzf - -C /root"
+    local host="$1" tmp
+    tmp=$(stream_archive | ssh "$USER@$host" 'f=$(mktemp) && cat > "$f" && echo "$f"')
+    local remote_cmd="tar xzf $tmp -C /root"
     if [[ -n "$chmod_cmd" ]]; then remote_cmd+=" && $chmod_cmd"; fi
-    stream_archive | ssh "$USER@$host" "sudo bash -c \"$remote_cmd\""
+    ssh -t "$USER@$host" "sudo bash -c \"$remote_cmd\"; rc=\$?; rm -f $tmp; exit \$rc"
 }
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
