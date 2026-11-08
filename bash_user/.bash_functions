@@ -15,6 +15,8 @@ __source_direnv() {
 
 # builtin cd + log to ~/.dir_history + source ./.direnv
 __cd() {
+    # ~~ / ~~/sub -> $PROJECT_DIR (bash expands only ~ itself)
+    [[ $1 == "~~" || $1 == "~~/"* ]] && set -- "${PROJECT_DIR:-$HOME}${1#"~~"}" "${@:2}"
     builtin cd "$@" || return
     __log_dir_history
     __source_direnv
