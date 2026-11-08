@@ -19,10 +19,12 @@ if [ -f ~/.bash_functions ]; then
 fi
 
 bind -x '"\e[6~": __hist_widget'
-# fzf keys: Ctrl+T insert files, Alt+C cd, Ctrl+R history (Ubuntu package path)
-export FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:---walker=file,dir,follow,hidden}"    # Ctrl+T: include hidden
-[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && . /usr/share/doc/fzf/examples/key-bindings.bash
 
 load_completion
+
+# fzf shell integration (fzf 0.48+), after bash-completion:
+# keys Ctrl+T insert files, Alt+C cd, Ctrl+R history; completion **<Tab> (vi **<Tab>, kill **<Tab>, cd **<Tab>)
+export FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:---walker=file,dir,follow,hidden}"    # Ctrl+T: include hidden
+command -v fzf >/dev/null && eval "$(fzf --bash)"
 
 # ==[ Customization end ]============

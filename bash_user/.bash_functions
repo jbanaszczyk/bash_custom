@@ -115,11 +115,11 @@ __rm_trash() { [[ ${RM_TRASH:-0} == 1 ]] && command -v gio >/dev/null; }
 
 rm() {
     if [[ $# -eq 0 ]] && __interactive_shell; then
-        local selected_item
-        selected_item=$(ls -1p --color=always 2>/dev/null | fzf --ansi --height=40% --reverse --prompt="Select item to remove: ")
-        if [[ -n "$selected_item" ]]; then
-            local item_name
-            item_name=$(printf '%s' "$selected_item" | sed 's/\x1b\[[0-9;]*m//g; s|/$||')
+        local items=() item_name
+        mapfile -t items < <(ls -1p --color=always 2>/dev/null |
+            fzf -m --ansi --height=40% --reverse --prompt="Select items to remove (Tab marks): " |
+            sed 's/\x1b\[[0-9;]*m//g; s|/$||')
+        for item_name in "${items[@]}"; do
             if __rm_trash; then
                 echo "trash $item_name"
                 gio trash "./$item_name"
@@ -130,7 +130,7 @@ rm() {
                 echo "rm $item_name"
                 command rm -- "$item_name"
             fi
-        fi
+        done
     elif __rm_trash; then
         # rm-style options (-r -f -i ...) are skipped - directories go to the trash anyway
         while [[ $1 == -* ]]; do [[ $1 == -- ]] && { shift; break; }; shift; done
@@ -143,14 +143,14 @@ rm() {
 
 del() {
     if [[ $# -eq 0 ]]; then
-        local selected_item
-        selected_item=$(ls -1pA --color=always 2>/dev/null | fzf --ansi --height=40% --reverse --prompt="Select item to delete: ")
-        if [[ -n "$selected_item" ]]; then
-            local item_name
-            item_name=$(printf '%s' "$selected_item" | sed 's/\x1b\[[0-9;]*m//g; s|/$||')
+        local items=() item_name
+        mapfile -t items < <(ls -1pA --color=always 2>/dev/null |
+            fzf -m --ansi --height=40% --reverse --prompt="Select items to delete (Tab marks): " |
+            sed 's/\x1b\[[0-9;]*m//g; s|/$||')
+        for item_name in "${items[@]}"; do
             echo "rm -rf $item_name"
             command rm -rf -- "$item_name"
-        fi
+        done
     else
         command rm -rf "$@"
     fi
