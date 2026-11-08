@@ -7,6 +7,7 @@ HISTCONTROL=ignorespace:erasedups
 export LESS="-NRiFX"
 export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:---color=16 --bind=home:first,end:last}"
 PROJECT_DIR="$HOME"    # target of ~~ - set to the project you work on
+RM_TRASH=0    # 1: rm moves to the trash (gio trash, needs gio) - real delete: del
 shopt -s autocd
 
 if [ -f ~/.bash_prompt ]; then

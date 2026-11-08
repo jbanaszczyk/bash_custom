@@ -110,6 +110,9 @@ dh() {
     fi
 }
 
+# RM_TRASH=1 and gio installed: rm moves to the trash (same trash as Dolphin)
+__rm_trash() { [[ ${RM_TRASH:-0} == 1 ]] && command -v gio >/dev/null; }
+
 rm() {
     if [[ $# -eq 0 ]] && __interactive_shell; then
         local selected_item
@@ -117,7 +120,10 @@ rm() {
         if [[ -n "$selected_item" ]]; then
             local item_name
             item_name=$(printf '%s' "$selected_item" | sed 's/\x1b\[[0-9;]*m//g; s|/$||')
-            if [[ -d "$item_name" ]]; then
+            if __rm_trash; then
+                echo "trash $item_name"
+                gio trash "./$item_name"
+            elif [[ -d "$item_name" ]]; then
                 echo "rmdir $item_name"
                 command rmdir -- "$item_name"
             else
@@ -125,6 +131,11 @@ rm() {
                 command rm -- "$item_name"
             fi
         fi
+    elif __rm_trash; then
+        # rm-style options (-r -f -i ...) are skipped - directories go to the trash anyway
+        while [[ $1 == -* ]]; do [[ $1 == -- ]] && { shift; break; }; shift; done
+        # ./ instead of -- : gio treats "--" before a -name as a file name
+        gio trash "${@/#-/./-}"
     else
         command rm "$@"
     fi

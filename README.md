@@ -123,7 +123,7 @@ owned by you and executable (`chmod +x .direnv`). See `bash_user/README.md`.
 | Page Up        | pick from directory history (`dh`) and `cd` there  |
 | Page Down      | command history picker (inserts into command line) |
 | `list`         | interactively select a file to view                |
-| `rm`           | interactive, safe file remove                      |
+| `rm`           | interactive, safe remove; trash with `RM_TRASH=1`  |
 | `del`          | interactive, forced file remove (`rm -rf`)         |
 
 ### `netstat`
