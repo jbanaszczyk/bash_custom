@@ -156,6 +156,39 @@ del() {
     fi
 }
 
+# TCC SELECT: pick with fzf (Tab marks several), then
+#   use              -> selection to the clipboard (shell-quoted, space-separated)
+#   use cmd .. {} .. -> cmd once per item, {} replaced by the name (also inside a word: {}.bak)
+#   use cmd ..       -> cmd once, all items appended
+# List: ls -A of the current dir (dirs first, colored), or stdin when piped: find . -name '*.log' | use rm {}
+use() {
+    local items=() f a per_item=0
+    mapfile -t items < <(
+        if [[ -t 0 ]]; then ls -1Ap --group-directories-first --color=always; else cat; fi |
+            fzf -m --ansi --height=40% --reverse --prompt="use: " |
+            sed 's/\x1b\[[0-9;]*m//g; s|/$||; s|^-|./-|')    # ./-name: not taken as an option
+    (( ${#items[@]} )) || return 1
+
+    if (( $# == 0 )); then
+        local text
+        text=$(printf '%q ' "${items[@]}"); text=${text% }
+        clip "$text"
+        printf 'clipboard: %s\n' "$text"
+        return
+    fi
+    for a; do [[ $a == *"{}"* ]] && per_item=1; done
+    if (( per_item )); then
+        for f in "${items[@]}"; do
+            local cmd=("${@//"{}"/"$f"}")    # quoted replacement: & in names stays literal
+            printf '%q ' "${cmd[@]}"; echo
+            "${cmd[@]}"
+        done
+    else
+        printf '%q ' "$@" "${items[@]}"; echo
+        "$@" "${items[@]}"
+    fi
+}
+
 list() {
     local viewer
     if command -v batcat >/dev/null 2>&1; then

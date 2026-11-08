@@ -125,6 +125,8 @@ owned by you and executable (`chmod +x .direnv`). See `bash_user/README.md`.
 | `list`         | interactively select a file to view                |
 | `rm`           | interactive, safe remove; trash with `RM_TRASH=1`  |
 | `del`          | interactive, forced file remove (`rm -rf`)         |
+| `use`          | TCC SELECT: pick (fzf) -> clipboard or `cmd {}`    |
+| Ctrl+T         | fzf: insert files at the cursor                    |
 
 ### `netstat`
 
