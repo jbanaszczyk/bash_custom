@@ -1,3 +1,4 @@
 .bash_history
 *.iml
 .idea/workspace.xml
+.hostname_aliases

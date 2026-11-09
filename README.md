@@ -4,7 +4,7 @@ Portable bash customization for developer workstations and servers.
 
 - Powerful file finder (`ffind`) - recursive search with content grep, case options, hidden file support
 - Keyboard-driven navigation using [fzf](https://github.com/juniper/fzf) - fuzzy finder for interactive directory/file/history picking
-- Syntax-highlighted file viewer (`list`) via [batcat](https://github.com/sharkdp/bat) (optional)
+- Syntax-highlighted file viewer (`list`) and fzf previews via [batcat](https://github.com/sharkdp/bat)
 - Selenized Light theme (colors come from the terminal palette)
 
 ## Repository structure
@@ -18,8 +18,8 @@ Each directory is self-contained and ships with its own `README.md` and `deploy*
 
 ## Requirements
 
-- `bash_user`: `fzf` - fuzzy finder for interactive navigation (`sudo apt install fzf`)
-- `bash_user`: `batcat` - syntax-highlighted file viewer, optional (`sudo apt install bat`)
+- `bash_user`: `fzf` 0.48+ from git (the Ubuntu package is too old) - see `bash_user/README.md`
+- `bash_user`: `batcat`, `tree`, `bash-completion` (`sudo apt install bat tree bash-completion`)
 - `bash_root`: no extra dependencies
 
 ## Quick start
@@ -27,15 +27,17 @@ Each directory is self-contained and ships with its own `README.md` and `deploy*
 Deploy to multiple hosts in one command - `.` means local, the rest are SSH hosts.
 Full steps are in each directory's `README.md` (sections *Initial deploy* and *Update*).
 
+`~/.bashrc` only sources `~/.bash_custom` (deployed like the other files), so an update needs no editing on the hosts.
+
 Initial deploy (once per host / account):
 
 ```bash
-# 1. copy files, including .bashrc_ and dedup_history.sh (not in the default set)
-cd bash_user && ./deploy.sh -f .bashrc_ -f dedup_history.sh . host1 host2
+# 1. copy files, including dedup_history.sh (not in the default set)
+cd bash_user && ./deploy.sh -f dedup_history.sh . host1 host2
 
 # 2-5. on each host
-sudo apt install fzf bat bash-completion       # bat, bash-completion optional
-cat ~/.bashrc_ >> ~/.bashrc && rm ~/.bashrc_   # .bashrc integration
+#   fzf from git, bat, tree, bash-completion - see bash_user/README.md, Requirements
+#   add the Customization block to ~/.bashrc - see bash_user/README.md, Initial deploy
 ~/dedup_history.sh                             # one-shot, removes itself
 exec bash                                      # restart bash
 ```
@@ -47,13 +49,11 @@ cd bash_user && ./deploy.sh . host1 host2      # default files only
 exec bash
 ```
 
-If `.bashrc_` changed, update the `Customization begin` ... `end` block in `~/.bashrc` by hand.
-
 Other variants:
 
 ```bash
 # root config: local + remote, requires sudo
-cd bash_root && ./deploy_root.sh -f .bashrc_ -f dedup_history.sh . host1
+cd bash_root && ./deploy_root.sh -f dedup_history.sh . host1
 
 # user config for the jenkins account on two hosts, requires sudo
 cd bash_user && ./deploy.sh -u jenkins . host1
@@ -61,9 +61,9 @@ cd bash_user && ./deploy.sh -u jenkins . host1
 
 ## History deduplication
 
-`HISTCONTROL=erasedups` is set in `.bashrc_` - a repeated command removes its older copies
+`HISTCONTROL=erasedups` is set in `.bash_custom` - a repeated command removes its older copies
 from the in-memory history. By default bash only *appends* new commands to `~/.bash_history` on exit,
-so the file would keep the old copies. `.bashrc_` therefore sets an EXIT trap:
+so the file would keep the old copies. `.bash_custom` therefore sets an EXIT trap:
 
 ```bash
 [[ -z $BASH_EXECUTION_STRING ]] && trap 'history -w; unset HISTFILE' EXIT
@@ -141,7 +141,7 @@ Uses the OSC 52 escape sequence, supported by Kitty and Windows Terminal. Copy o
 
 ### `load_completion`
 
-Loads `/usr/share/bash-completion/bash_completion` if present. Called automatically in `bash_user/.bashrc_`. On systems where bash-completion is not sourced by default, run `load_completion` manually to enable tab-completion for commands.
+Loads `/usr/share/bash-completion/bash_completion` if present. Called automatically in `bash_user/.bash_custom`. On systems where bash-completion is not sourced by default, run `load_completion` manually to enable tab-completion for commands.
 
 ```bash
 sudo apt install bash-completion
@@ -189,7 +189,7 @@ Hues roughly follow the IntelliJ Selenized Light theme.
 
 The repo does not set terminal colors. The palette comes from Kitty's `selenized-light.conf`
 (font: CommitMonoV143). Prompt and `ls` colors use ANSI 16, so they follow the Kitty theme.
-`list` (batcat `--theme=ansi`) and fzf (`--color=16` in `FZF_DEFAULT_OPTS`) do too.
+`list` and fzf previews (batcat `--theme=ansi`) and fzf (`--color=16` in `FZF_DEFAULT_OPTS`) do too.
 
 ### Windows Terminal
 

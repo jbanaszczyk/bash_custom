@@ -2,6 +2,7 @@
 set -euo pipefail
 
 FILES=(
+    .bash_custom
     .bash_prompt
     .bash_aliases
     .bash_functions
@@ -12,8 +13,8 @@ FILES=(
 
 usage() {
     printf 'Usage: %s [-u user] [-f extra_file] host1 [host2 ...]\n' "$(basename "$0")" >&2
-    printf '  -u user: deploy to /home/user (default: $USER)\n' >&2
-    printf '  -f can be used multiple times, e.g.: -f .bashrc_ -f dedup_history.sh\n' >&2
+    printf '  -u user: deploy to ~user on the target host via sudo -u (default: $USER)\n' >&2
+    printf '  -f can be used multiple times, e.g.: -f dedup_history.sh\n' >&2
     exit 1
 }
 
@@ -23,33 +24,37 @@ validate_files() {
     done
 }
 
-build_chmod_cmd() {
-    chmod_cmd=""
+# Extract stdin into ~deploy_user, chmod +x the *.sh files; ~user is expanded by the shell that runs it
+build_extract_cmd() {
+    extract_cmd="cd ~$deploy_user && tar xzf -"
     for f in "${all_files[@]}"; do
-        if [[ "$f" == *.sh ]]; then chmod_cmd+="chmod +x /home/$deploy_user/${f##*/}; "; fi
+        if [[ "$f" == *.sh ]]; then extract_cmd+=" && chmod +x ${f##*/}"; fi
     done
 }
 
 stream_archive() {
-    tar czf - -C "$script_dir" -- "${all_files[@]}"
+    local shared=()    # repo root, not in git - deployed only if present
+    [[ -f "$script_dir/../.hostname_aliases" ]] && shared=(-C "$script_dir/.." .hostname_aliases)
+    tar czf - -C "$script_dir" "${all_files[@]}" "${shared[@]}"
 }
 
 deploy_local() {
-    local home_dir="/home/$deploy_user"
     if [[ "$deploy_user" == "$USER" ]]; then
-        stream_archive | tar xzf - -C "$home_dir"
-        if [[ -n "$chmod_cmd" ]]; then bash -c "$chmod_cmd"; fi
+        stream_archive | bash -c "$extract_cmd"
     else
-        stream_archive | sudo -u "$deploy_user" tar xzf - -C "$home_dir"
-        if [[ -n "$chmod_cmd" ]]; then sudo bash -c "$chmod_cmd"; fi
+        stream_archive | sudo -u "$deploy_user" bash -c "$extract_cmd"
     fi
 }
 
 deploy_remote() {
-    local host="$1"
-    local remote_cmd="tar xzf - -C ~"
-    if [[ -n "$chmod_cmd" ]]; then remote_cmd+=" && $chmod_cmd"; fi
-    stream_archive | ssh "$deploy_user@$host" "$remote_cmd"
+    local host="$1" tmp
+    if [[ "$deploy_user" == "$USER" ]]; then
+        stream_archive | ssh "$USER@$host" "$extract_cmd"
+    else
+        # Two steps: upload to a temp file, then extract with ssh -t (sudo needs a terminal for the password)
+        tmp=$(stream_archive | ssh "$USER@$host" 'f=$(mktemp) && cat > "$f" && echo "$f"')
+        ssh -t "$USER@$host" "sudo -u $deploy_user bash -c '$extract_cmd' < $tmp; rc=\$?; rm -f $tmp; exit \$rc"
+    fi
 }
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -67,13 +72,11 @@ shift $((OPTIND - 1))
 (( $# > 0 )) || usage
 
 all_files=("${FILES[@]}" "${extra_files[@]}")
-chmod_cmd=""
-
 validate_files
-build_chmod_cmd
+build_extract_cmd
 
 for host in "$@"; do
-    printf '[%s] -> /home/%s\n' "$host" "$deploy_user"
+    printf '[%s] -> ~%s\n' "$host" "$deploy_user"
     if [[ "$host" == "." ]]; then deploy_local; else deploy_remote "$host"; fi
     printf '[%s] OK (%d files)\n' "$host" "${#all_files[@]}"
 done

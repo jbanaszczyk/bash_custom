@@ -2,6 +2,9 @@ __interactive_shell() {
     [[ $- == *i* ]] && [[ -t 0 ]] && [[ -t 1 ]]
 }
 
+# fzf preview (list, rm, del, use, Ctrl+T): dir -> ls, file -> batcat; ANSI colors = terminal palette
+__fzf_preview='[ -d {} ] && ls -la --color=always -- {} || batcat --theme=ansi -n --color=always --line-range :300 -- {}'
+
 __log_dir_history() {
     __interactive_shell && printf '%s\n' "$PWD" >> "$HOME/.dir_history"
 }
@@ -117,7 +120,7 @@ rm() {
     if [[ $# -eq 0 ]] && __interactive_shell; then
         local items=() item_name
         mapfile -t items < <(ls -1p --color=always 2>/dev/null |
-            fzf -m --ansi --height=40% --reverse --prompt="Select items to remove (Tab marks): " |
+            fzf -m --ansi --height=40% --reverse --preview "$__fzf_preview" --prompt="Select items to remove (Tab marks): " |
             sed 's/\x1b\[[0-9;]*m//g; s|/$||')
         for item_name in "${items[@]}"; do
             if __rm_trash; then
@@ -145,7 +148,7 @@ del() {
     if [[ $# -eq 0 ]]; then
         local items=() item_name
         mapfile -t items < <(ls -1pA --color=always 2>/dev/null |
-            fzf -m --ansi --height=40% --reverse --prompt="Select items to delete (Tab marks): " |
+            fzf -m --ansi --height=40% --reverse --preview "$__fzf_preview" --prompt="Select items to delete (Tab marks): " |
             sed 's/\x1b\[[0-9;]*m//g; s|/$||')
         for item_name in "${items[@]}"; do
             echo "rm -rf $item_name"
@@ -165,7 +168,7 @@ use() {
     local items=() f a per_item=0
     mapfile -t items < <(
         if [[ -t 0 ]]; then ls -1Ap --group-directories-first --color=always; else cat; fi |
-            fzf -m --ansi --height=40% --reverse --prompt="use: " |
+            fzf -m --ansi --height=40% --reverse --preview "$__fzf_preview" --prompt="use: " |
             sed 's/\x1b\[[0-9;]*m//g; s|/$||; s|^-|./-|')    # ./-name: not taken as an option
     (( ${#items[@]} )) || return 1
 
@@ -181,11 +184,11 @@ use() {
         for f in "${items[@]}"; do
             local cmd=("${@//"{}"/"$f"}")    # quoted replacement: & in names stays literal
             printf '%q ' "${cmd[@]}"; echo
-            "${cmd[@]}"
+            "${cmd[@]}" < /dev/tty    # stdin may be the used-up pipe: vi, nano need the keyboard
         done
     else
         printf '%q ' "$@" "${items[@]}"; echo
-        "$@" "${items[@]}"
+        "$@" "${items[@]}" < /dev/tty
     fi
 }
 
@@ -202,7 +205,7 @@ list() {
         selected_file=$(
             ls -1p -a --color=always 2>/dev/null |
             grep -v '/$' |
-            fzf --ansi --height=40% --reverse --prompt="Select file to view: "
+            fzf --ansi --height=40% --reverse --preview "$__fzf_preview" --prompt="Select file to view: "
         )
         if [[ -n "$selected_file" ]]; then
             "${viewer[@]}" -- "$(printf '%s' "$selected_file" | sed 's/\x1b\[[0-9;]*m//g')"

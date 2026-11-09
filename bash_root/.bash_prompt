@@ -1,17 +1,4 @@
 # --- Hostname Alias Configuration ---
-HOSTNAME_ALIASES=(
-    "wawsrvdev175:dev"
-    "wawsrvdev174:DM_stg"
-    "wawsrvdev124:DM_dev"
-    "wawsrvdev125:DM_dev2"
-    "wawsrvdev126:DM_ldap"
-    "wawsrvdev127:DM_dev3"
-    "wawsrvdev128:DM_dev4"
-    "wawsrvbuild100:DM_dev5"
-    "wawsrvbuild102:DM_dev6"
-    "wawsrvbuild103:DM_dev7"
-)
-
 get_hostname_alias() {
     local hostname=$(hostname)
     local short_hostname=${hostname%%.*}
@@ -23,13 +10,11 @@ get_hostname_alias() {
         [[ -n "$host_alias" ]] && { echo "$host_alias"; return; }
     fi
 
-    # Fallback to built-in array
-    for mapping in "${HOSTNAME_ALIASES[@]}"; do
-        if [[ $mapping == $short_hostname:* ]]; then
-            echo "${mapping#*:}"
-            return
-        fi
-    done
+    # ~/.hostname_aliases (deployed from the repo, not in git): "hostname alias" per line
+    if [[ -r ~/.hostname_aliases ]]; then
+        host_alias=$(awk -v h="$short_hostname" '$1 == h {print $2; exit}' ~/.hostname_aliases)
+        [[ -n "$host_alias" ]] && { echo "$host_alias"; return; }
+    fi
 
     # Fallback to /etc/hosts
     if [[ -r /etc/hosts ]]; then

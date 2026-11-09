@@ -1,0 +1,37 @@
+# Sourced from ~/.bashrc - overwritten by deploy.sh; per-host settings go to ~/.bashrc
+
+HISTCONTROL=ignorespace:erasedups
+HISTSIZE=100000        # history worth searching with Ctrl+R
+HISTFILESIZE=200000    # works only without the stock HISTFILESIZE=2000 line in ~/.bashrc (it truncates the file)
+# On exit write the in-memory (deduplicated) history instead of appending to the file
+# Skipped for `bash -i -c` (IDE / tool env probes): it does not load history, the trap would empty the file
+[[ -z $BASH_EXECUTION_STRING ]] && trap 'history -w; unset HISTFILE' EXIT
+export LESS="-NRiFX"
+PROJECT_DIR="$HOME"    # target of ~~ - override in ~/.bashrc, after the .bash_custom line
+RM_TRASH=0             # 1: rm moves to the trash (gio trash) - real delete: del
+shopt -s autocd
+
+if [ -f ~/.bash_prompt ]; then
+    . ~/.bash_prompt
+fi
+
+if [ -f ~/.bash_functions ]; then
+    . ~/.bash_functions
+fi
+
+bind -x '"\e[6~": __hist_widget'
+
+load_completion
+
+# ---- fzf 0.48+; must come after bash-completion (fzf wraps existing completions)
+# keys Ctrl+T insert files, Alt+C cd, Ctrl+R history; completion **<Tab> (vi **<Tab>, kill **<Tab>, cd **<Tab>)
+export FZF_DEFAULT_OPTS='--color=16 --bind=home:first,end:last --walker-skip=.git,node_modules,target,build,.gradle,.idea'
+export FZF_CTRL_T_OPTS="--walker=file,dir,follow,hidden --preview '$__fzf_preview'"    # Ctrl+T: include hidden
+export FZF_ALT_C_OPTS="--preview 'tree -C -L 2 {} | head -100'"
+export FZF_CTRL_R_OPTS="--preview 'echo {2..}' --preview-window=down:3:wrap"
+
+if [ -f ~/.fzf.bash ]; then
+    . ~/.fzf.bash                        # git install: adds ~/.fzf/bin to PATH, runs fzf --bash
+elif command -v fzf >/dev/null; then
+    eval "$(fzf --bash 2>/dev/null)"     # apt install (silent on fzf < 0.48)
+fi

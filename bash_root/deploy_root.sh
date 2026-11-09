@@ -2,6 +2,7 @@
 set -euo pipefail
 
 FILES=(
+    .bash_custom
     .bash_prompt
     .bash_aliases
     .bash_functions
@@ -12,7 +13,7 @@ FILES=(
 
 usage() {
     printf 'Usage: %s [-f extra_file] host1 [host2 ...]\n' "$(basename "$0")" >&2
-    printf '  -f can be used multiple times, e.g.: -f .bashrc_ -f dedup_history.sh\n' >&2
+    printf '  -f can be used multiple times, e.g.: -f dedup_history.sh\n' >&2
     exit 1
 }
 
@@ -31,7 +32,9 @@ build_chmod_cmd() {
 
 # owner root:root - tar run as root restores the owner stored in the archive
 stream_archive() {
-    tar czf - --owner=0 --group=0 --numeric-owner -C "$script_dir" -- "${all_files[@]}"
+    local shared=()    # repo root, not in git - deployed only if present
+    [[ -f "$script_dir/../.hostname_aliases" ]] && shared=(-C "$script_dir/.." .hostname_aliases)
+    tar czf - --owner=0 --group=0 --numeric-owner -C "$script_dir" "${all_files[@]}" "${shared[@]}"
 }
 
 deploy_local() {
